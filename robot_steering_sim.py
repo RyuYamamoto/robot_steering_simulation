@@ -125,13 +125,12 @@ class MotionControl:
             x, y, theta = robot_pos
             dx = [x - t_ix for t_ix in self.ix]
             dy = [y - t_iy for t_iy in self.iy]
-            distance = [abs(math.sqrt(pow(idx, 2) + pow(idy, 2)))
-                        for (idx, idy) in zip(dx, dy)]
+            distance = [abs(math.sqrt(pow(idx, 2) + pow(idy, 2))) for (idx, idy) in zip(dx, dy)]
             index = distance.index(min(distance))
             self.look_ahead = 0.
-            Lf = 0.1 * self.v + 0.3
+            look_ahead_filter = 0.1 * self.v + 0.3
 
-            while Lf > self.look_ahead and (index + 1) < len(self.ix):
+            while look_ahead_filter > self.look_ahead and (index + 1) < len(self.ix):
                 dx = self.ix[index + 1] - self.ix[index]
                 dy = self.iy[index + 1] - self.iy[index]
                 self.look_ahead += math.sqrt(dx ** 2 + dy ** 2)
@@ -153,7 +152,7 @@ class MotionControl:
         steering_angle = math.atan2(2.0 * self.look_ahead *
                                     math.sin(alpha) / (0.3 + 0.1 * self.v), 1.0)
 
-        return steering_angle, index
+        return steering_angle
 
     # ロボットの運動モデルにはKinematics Modelを使用する
     # 前進速度とステアリング角によりt+1後の位置を計算する
@@ -204,7 +203,7 @@ if __name__ == "__main__":
         # P制御により計算されたロボットの速度
         ak = controller.pid_velocity_control(target_velocity)
         # pure pursitにより計算されたステアリング角
-        steering_angle, index = controller.calc_pure_pursuit(robot_pos)
+        steering_angle = controller.calc_pure_pursuit(robot_pos)
 
         if check_goal(robot_pos) is False:
             # 方位、前進速度、現在位置から次の位置を更新する
@@ -215,7 +214,7 @@ if __name__ == "__main__":
         visualize.move_robot(robot_pos)
 
         plt.pause(DT)
-        count = count + 1
+        count += 1
         if 100 < float(DT * count):
             break
     print("simulation done.")
