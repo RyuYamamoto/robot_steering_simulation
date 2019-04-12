@@ -119,6 +119,11 @@ class MotionControl:
     def pid_velocity_control(self, target_velocity):
         return 1 * (target_velocity - self.v)
 
+    # 正規分布に基づくノイズをロボットに与える
+    def noise(self, robot_pos):
+        w = 0
+        return robot_pos
+
     # Look Ahead Distanceに基づきリファレンスデータを得る
     def seach_reference_point(self, robot_pos):
         try:
