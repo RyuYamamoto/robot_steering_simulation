@@ -10,11 +10,6 @@ from scipy.interpolate import interp1d
 
 # サンプリング周期[s]
 DT = 0.01
-# ロボットの車輪間の幅[m]
-W = 0.5
-# Look ahead distance
-L = 1
-
 
 class Visualize:
     def __init__(self):
@@ -89,16 +84,8 @@ class Visualize:
                         self.robot_pos_y_list, s=1, color="blue", label="trajectory")
         self.ax.legend()
 
-# ロボットの移動時に正規分布に基づくノイズをのせる
-
-
-def noise(u, w):
-    print("正規分布")
-
 # 一次補間 or スプライン補間??
     # サンプリング周期DTで参照位置を離散化する
-
-
 def interpolation(way_point_list, alg="cubic"):
     ix = []
     iy = []
@@ -121,7 +108,6 @@ def interpolation(way_point_list, alg="cubic"):
 
     return ix, iy
 
-
 class MotionControl:
     def __init__(self, way_point_list):
         self.v = 0.
@@ -134,9 +120,9 @@ class MotionControl:
         return 1 * (target_velocity - self.v)
 
     # Look Ahead Distanceに基づきリファレンスデータを得る
-    def seach_reference_point(self, state):
+    def seach_reference_point(self, robot_pos):
         try:
-            x, y, theta = state
+            x, y, theta = robot_pos
             dx = [x - t_ix for t_ix in self.ix]
             dy = [y - t_iy for t_iy in self.iy]
             distance = [abs(math.sqrt(pow(idx, 2) + pow(idy, 2)))
@@ -155,10 +141,10 @@ class MotionControl:
             print(str(message))
 
     # pure pursuitによりステアンリング角度を計算する
-    def calc_pure_pursuit(self, state):
-        x, y, theta = state
+    def calc_pure_pursuit(self, robot_pos):
+        x, y, theta = robot_pos
         # リファレンスパスを検索する
-        index = self.seach_reference_point(state)
+        index = self.seach_reference_point(robot_pos)
 
         # 方位誤差を計算する
         alpha = math.atan2(self.iy[index] - y, self.ix[index] - x) - theta
@@ -172,8 +158,8 @@ class MotionControl:
     # ロボットの運動モデルにはKinematics Modelを使用する
     # 前進速度とステアリング角によりt+1後の位置を計算する
     # https://myenigma.hatenablog.com/entry/2017/05/14/151539#Kinematic-Model
-    def steering_control(self, state, ak, steering_angle):
-        x, y, theta = state
+    def steering_control(self, robot_pos, ak, steering_angle):
+        x, y, theta = robot_pos
 
         x = x + self.v * math.cos(theta) * DT
         y = y + self.v * math.sin(theta) * DT
