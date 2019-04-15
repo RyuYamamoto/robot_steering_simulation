@@ -2,10 +2,11 @@
 import sys
 import os
 import matplotlib.pyplot as plt
-import math
 import matplotlib.patches as patches
-import numpy as np
 import matplotlib.animation as animation
+import math
+import numpy as np
+from numpy.random import *
 from scipy.interpolate import interp1d
 
 # サンプリング周期[s]
@@ -120,8 +121,9 @@ class MotionControl:
         return 1 * (target_velocity - self.v)
 
     # 正規分布に基づくノイズをロボットに与える
+    # ここでは計算されたステアリング角のみに与える
     def noise(self, robot_pos):
-        w = 0
+        robot_pos[2] += normal(0,0.05)
         return robot_pos
 
     # Look Ahead Distanceに基づきリファレンスデータを得る
@@ -214,6 +216,8 @@ if __name__ == "__main__":
             # 方位、前進速度、現在位置から次の位置を更新する
             robot_pos = controller.steering_control(
                 robot_pos, ak, steering_angle)
+            # 正規分布に基づくノイズを付与
+            robot_pos = controller.noise(robot_pos)
 
         # ロボットを描画する
         visualize.move_robot(robot_pos)
